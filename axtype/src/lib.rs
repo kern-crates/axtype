@@ -67,6 +67,16 @@ pub const fn is_aligned_4k(addr: usize) -> bool {
     is_aligned(addr, PAGE_SIZE)
 }
 
+#[inline]
+pub const fn virt_to_phys(va: usize) -> usize {
+    va - config::PHYS_VIRT_OFFSET
+}
+
+#[inline]
+pub const fn phys_to_virt(pa: usize) -> usize {
+    pa + config::PHYS_VIRT_OFFSET
+}
+
 pub struct DtbInfo {
     pub init_cmd: Option<String>,
 }
