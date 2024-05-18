@@ -69,12 +69,12 @@ pub const fn is_aligned_4k(addr: usize) -> bool {
 
 #[inline]
 pub const fn virt_to_phys(va: usize) -> usize {
-    va - config::PHYS_VIRT_OFFSET
+    va - axconfig::PHYS_VIRT_OFFSET
 }
 
 #[inline]
 pub const fn phys_to_virt(pa: usize) -> usize {
-    pa + config::PHYS_VIRT_OFFSET
+    pa + axconfig::PHYS_VIRT_OFFSET
 }
 
 pub struct DtbInfo {
