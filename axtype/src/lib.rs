@@ -1,5 +1,8 @@
 #![cfg_attr(not(test), no_std)]
 
+mod path;
+pub use path::Path;
+
 extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -98,6 +101,9 @@ impl DtbInfo {
 }
 
 pub fn get_user_str(ptr: usize) -> String {
+    if ptr == 0 {
+        return String::new();
+    }
     let ptr = ptr as *const u8;
     String::from(raw_ptr_to_ref_str(ptr))
 }
@@ -142,3 +148,117 @@ pub fn get_user_str_vec(addr: usize) -> Vec<String> {
     }
     vec
 }
+
+/// 
+/// __ffs - find first bit in u64-word.
+/// @word: The set to search
+/// 
+/// Return index when there's some bits, or None if no bit exists.
+/// 
+pub fn ffz(mut word: u64) -> Option<usize> {
+    if word == 0 {
+        return None;
+    }
+
+    let mut num = 0;
+
+    if (word & 0xffffffff) == 0 {
+        num += 32;
+        word >>= 32;
+    }
+    if (word & 0xffff) == 0 {
+        num += 16;
+        word >>= 16;
+    }
+    if (word & 0xff) == 0 {
+        num += 8;
+        word >>= 8;
+    }
+    if (word & 0xf) == 0 {
+        num += 4;
+        word >>= 4;
+    }
+    if (word & 0x3) == 0 {
+        num += 2;
+        word >>= 2;
+    }
+    if (word & 0x1) == 0 {
+        num += 1;
+    }
+    return Some(num);
+}
+
+pub fn set_bit(nr: usize, bitword: &mut usize) {
+    *bitword |= 1 << nr;
+}
+
+pub fn clr_bit(nr: usize, bitword: &mut usize) {
+    *bitword &= !(1 << nr);
+}
+
+//
+// RLimit64
+//
+
+pub const RLIMIT_DATA: usize = 2;  /* max data size */
+pub const RLIMIT_STACK:usize = 3;  /* max stack size */
+pub const RLIMIT_CORE: usize = 4;  /* max core size */
+pub const RLIMIT_NOFILE: usize = 7; /* max number of open files */
+pub const RLIM_NLIMITS: usize = 16;
+
+#[derive(Default, Copy, Clone)]
+pub struct RLimit64 {
+    pub rlim_cur: u64,
+    #[allow(dead_code)]
+    rlim_max: u64,
+}
+
+impl RLimit64 {
+    pub fn new(rlim_cur: u64, rlim_max: u64) -> Self {
+        Self { rlim_cur, rlim_max }
+    }
+}
+
+///
+/// FileMode
+///
+pub const O_ACCMODE:    i32 = 0o000003;
+pub const O_RDONLY:     i32 = 0o000000;
+pub const O_WRONLY:     i32 = 0o000001;
+pub const O_RDWR:       i32 = 0o000002;
+pub const O_CREAT:      i32 = 0o000100;
+pub const O_EXCL:       i32 = 0o000200;
+pub const O_TRUNC:      i32 = 0o001000;
+pub const O_APPEND:     i32 = 0o002000;
+pub const O_NONBLOCK:   i32 = 0o004000;
+pub const O_DIRECTORY:  i32 = 0o200000;     /* must be a directory */
+pub const O_NOFOLLOW:   i32 = 0o400000;     /* don't follow links */
+pub const O_NOATIME:    i32 = 0o1000000;
+pub const O_CLOEXEC:    i32 = 0o2000000;    /* set close_on_exec */
+pub const O_PATH:       i32 = 0o10000000;
+pub const __O_TMPFILE:  i32 = 0o20000000;
+
+pub const FS_NAME_LEN: usize = 255;
+
+///
+/// File flags.
+///
+/*
+#define S_IFSOCK 0140000
+#define S_IFLNK  0120000
+#define S_IFBLK  0060000
+#define S_IFDIR  0040000
+ */
+pub const S_IFMT:   i32 = 0o170000;
+pub const S_IFREG:  i32 = 0o100000;
+pub const S_IFIFO:  i32 = 0o10000;
+pub const S_IFCHR:  i32 = 0o20000;
+pub const S_ISUID:  i32 = 0o04000;
+pub const S_ISGID:  i32 = 0o02000;
+pub const S_ISVTX:  i32 = 0o01000;
+
+/// Max loop dev number.
+pub const MAX_LOOP_NUMBER: usize = 2;
+
+/// Major Code
+pub const MAJOR_LOOP: u32 = 7;
